@@ -19,6 +19,7 @@ db.sequelize.sync();
 require("./app/routes/")(app);
 require("./app/routes/times.route")(app);
 require("./app/routes/users.route")(app);
+require("./app/routes/open.route")(app);
 //require("./app/routes/checksConfig.route")(app);
 //require("./app/routes/index")(app);
 

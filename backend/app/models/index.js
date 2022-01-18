@@ -26,5 +26,6 @@ db.sequelize = sequelize;
 
 db.times = require("./times.model.js")(sequelize, Sequelize);
 db.users = require("./users.model.js")(sequelize, Sequelize);
+db.open = require("./open.model.js")(sequelize, Sequelize);
 
 module.exports = db;

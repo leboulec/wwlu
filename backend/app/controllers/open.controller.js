@@ -28,7 +28,6 @@ exports.findOne = (req, res) => {
     Open.findByPk(0)
         .then(data => {
             res.send(data);
-            
         })
         .catch(err => {
             res.status(500).send({
