@@ -11,7 +11,14 @@
     <title>We Will Lock You</title>
   </head>
   <body class="text-center">
-    <div class="container">
+    <script>
+      backend = "http://0b13-2a04-cec0-1083-77dc-a3b3-71c2-5952-ba83.ngrok.io/api/"
+      origin = "http://60a5-2a04-cec0-1083-77dc-a3b3-71c2-5952-ba83.ngrok.io"
+    </script>
+    <div class="container d-grid gap-3 w-md-25 p-3" style="margin-top:20px;">
+     <div class="row">
+       <button type="button" class="btn btn-primary btn-lg" onclick="openLock(this.value)">Open Lock</button>
+     </div>
       <div class="row">
       <div class="btn-group" role="group" aria-label="Basic example">
         <script type="text/javascript">
@@ -19,27 +26,44 @@
             console.log(this.value);
             const requestOptions = {
               method: 'GET',
-              headers: { 'Content-Type': 'application/json'},
+              headers: { 'Content-Type': 'application/json',
+                         'Origin': origin},
             };
-            fetch('http://localhost:8081/api/users', requestOptions)
+            fetch(backend + 'users/all', requestOptions)
               .then(response => response.json())
               .then(data => {
-                let resp = JSON.stringify(data);
-                document.getElementById("users").innerHTML = resp;
+                var table = document.getElementById("user-table")
+                //Flush table
+                while (table.lastChild) {
+                  table.removeChild(table.lastChild);
+                }
+
+
+                for (let key in data) {
+                  console.log(key)
+                  console.log(data[key])
+                  row = table.insertRow();
+                  cellA = row.insertCell();
+                  cellB = row.insertCell();
+ 
+                  // (C3) KEY & VALUE
+                  cellA.innerHTML = data[key]["userid"];
+                  cellB.innerHTML = data[key]["authorization"];
+
+                }
               });
           }
 
-          function openLock(this.value) {
+          function openLock(value) {
             const requestOptions = {
               method: 'POST',
               headers: { 'Content-Type': 'application/json'}
             };
-            fetch('http://localhost:8081/api/openLock', requestOptions)
+            fetch(backend + 'open', requestOptions)
               .then(response => response.json());
           }
         </script>
-        <button type="button" class="btn btn-primary" onclick="openLock(this.value)">Open Lock</button>
-        <button type="button" class="btn btn-primary" onclick="getUsers(this.value)">Get users</button>
+        <button type="button" class="btn btn-outline-info btn-lg" style="width: 30%;" onclick="getUsers(this.value)">Get users</button>
         </div>
 
         <div class="row">
@@ -47,30 +71,11 @@
         <table class="table">
           <thead>
             <tr>
-              <th scope="col">User Id</th>
+              <th scope="col">User ID</th>
               <th scope="col">Authorization</th>
-              <th scope="col">Handle</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <th scope="row">1</th>
-              <td>Mark</td>
-              <td>Otto</td>
-              <td>@mdo</td>
-            </tr>
-            <tr>
-              <th scope="row">2</th>
-              <td>Jacob</td>
-              <td>Thornton</td>
-              <td>@fat</td>
-            </tr>
-            <tr>
-              <th scope="row">3</th>
-              <td>Larry</td>
-              <td>the Bird</td>
-              <td>@twitter</td>
-            </tr>
+          <tbody id="user-table">
           </tbody>
         </table>
       </div>

@@ -9,10 +9,27 @@ exports.findAll = (req, res) => {
         })
         .catch(err => {
             res.status(500).send({
-                message: err.message || "Some error occured while retrieving alerts."
+                message: err.message || "Some error occured while retrieving users."
             });
         });
 };
+
+exports.findOne = (req, res) => {
+    Users.findAll({where: {
+        userid: req.body.userid
+    }, raw: true}).then(data => {
+        if (data.length === 0) {
+            res.status(204).send(data);
+        } else {
+            res.status(200).send(data);
+        }
+    })
+    .catch(err => {
+        res.status(500).send({
+            message: err.message || "Somme error occured while retrieving users."
+        })
+    })
+}
 
 exports.create = (req, res) => {
     console.log(req.body);
