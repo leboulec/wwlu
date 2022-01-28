@@ -7,6 +7,6 @@ module.exports = app => {
     router.get("/", open.findOne);
     router.post("/", open.update);
 
-    app.use("/api/times", router);
+    app.use("/api/open", router);
 }
 
