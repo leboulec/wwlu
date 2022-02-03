@@ -2,17 +2,33 @@
 #include <HTTPClient.h>
 #include <Arduino.h>
 
+const byte BLACK = 0b000;
+const byte RED = 0b100;
+const byte GREEN = 0b010;
+const byte BLUE = 0b001;
+const byte MAGENTA = 0b101;
+const byte CYAN = 0b011;
+const byte YELLOW = 0b110;
+const byte WHITE = 0b111;
+
 #define PIN_RELAY 4
-#define PIN_BUZZER 5    
-#define PIN_GREEN_LED 21
-#define PIN_RED_LED 22
-#define PIN_READ_LOCK 15
-#define KEY_PIN 19
-#define SWITCH_PIN 18
+#define PIN_BUZZER 32    
+#define PIN_BLUE_LED 21
+#define PIN_GREEN_LED 22  
+#define PIN_RED_LED 25
+#define KEY_PIN 34
+#define SWITCH_PIN 14
 #define RECONNEXION_DELAY 5000
 
 const String server_address = "http://1406-2a04-cec0-10bb-250-5105-a332-9a5c-1cea.ngrok.io/api/open";
-int flag = 0;
+bool flag = true;
+
+void displayColor(byte color) {
+
+  digitalWrite(PIN_RED_LED, bitRead(color, 2) );
+  digitalWrite(PIN_GREEN_LED, bitRead(color, 1) );
+  digitalWrite(PIN_BLUE_LED, bitRead(color, 0) );
+}
 
 void connect_to_wifi(char* SSID , char* password){
   WiFi.begin(SSID, password);
@@ -30,23 +46,23 @@ void connect_to_wifi(char* SSID , char* password){
   }
 }
 
-void interrupt_key(){
-    flag = 1;
-}
-
 void setup() {
   Serial.begin(115200);
   cli();
-  sei();
-  connect_to_wifi( "Juliette Venel" , "toutenmajuscule" ); 
-  Serial.println("\nConnected to WiFi");      
+  sei();   
   pinMode(PIN_RELAY, OUTPUT);
   pinMode(PIN_BUZZER, OUTPUT);
+  pinMode(PIN_BLUE_LED, OUTPUT);
   pinMode(PIN_GREEN_LED, OUTPUT);
   pinMode(PIN_RED_LED, OUTPUT);
   pinMode(KEY_PIN, INPUT);
   pinMode(SWITCH_PIN, INPUT);
-  attachInterrupt(digitalPinToInterrupt(KEY_PIN), interrupt_key, FALLING);     
+
+  connect_to_wifi( "iPhone de Clément Roger" , "123456789" ); 
+  Serial.println("\nConnected to WiFi");
+  displayColor(YELLOW);
+  delay(2000);
+  displayColor(BLACK);
 } 
 
 void unlock(){
@@ -54,10 +70,10 @@ void unlock(){
   digitalWrite(PIN_RELAY, HIGH);
   for(int i = 0; i < 3; i++){
       digitalWrite(PIN_BUZZER, HIGH);
-      digitalWrite(PIN_GREEN_LED, HIGH);     
+      displayColor(GREEN);     
       delay(100);
       digitalWrite(PIN_BUZZER, LOW);
-      digitalWrite(PIN_GREEN_LED, LOW);
+      displayColor(BLACK);
       delay(100);
   }
 }
@@ -65,32 +81,43 @@ void unlock(){
 void lock(){
   
   digitalWrite(PIN_RELAY, LOW);
-  digitalWrite(PIN_RED_LED, HIGH);
+  displayColor(RED);
   delay(1000);
-  digitalWrite(PIN_RED_LED, LOW);
+  displayColor(BLACK);
 }
 
 void loop() {
 
-  if( flag == 1 ){
+  Serial.println( digitalRead(SWITCH_PIN) );
+
+  if( digitalRead(KEY_PIN) == 0 && flag ){
+
+    Serial.println("Clef tournee !");
     
     if( digitalRead( SWITCH_PIN ) == 0 ){
+      Serial.println("J'ouvre la porte !");
       unlock();
       delay(1000);
       lock();  
     }
     else{
       //add card
+      Serial.println("J'ajoute une carte !");
       for(int i = 0; i < 10; i++){
-        digitalWrite(PIN_RED_LED, HIGH);
+        displayColor(BLUE);
         delay(100);
-        digitalWrite(PIN_RED_LED, LOW);
+        displayColor(BLACK);
         delay(100);
       }
     }
-      
-    flag = 0;
+    flag = false;
   }
+
+  if( digitalRead(KEY_PIN) == 1 ){
+    Serial.println("Clef reset !");
+    flag = true;
+  }
+  
   if( WiFi.status() == WL_CONNECTED ){
       HTTPClient http;
       http.begin( server_address );
@@ -108,6 +135,36 @@ void loop() {
         Serial.print("Error code : ");
         Serial.println(httpResponseCode);
       }
-      //http.end();
+      http.end();
   }                         
+}
+
+/*
+ * "We Will Lock You" project : Clément LEBOULENGER / Edouard MATHEU / Clément ROGER
+ * 
+ * Code made using example from esp32.io
+ * For moree information visit : https://esp32io.com/tutorials/esp32-rfid-nfc
+ */
+
+#include <SPI.h>
+#include <MFRC522.h>
+
+#define SS_PIN  5  // ESP32 pin GIOP5 
+#define RST_PIN 27 // ESP32 pin GIOP27 
+
+#define DEBUG true // Enable debug to print UIDs of Tags on the console
+
+MFRC522 rfid(SS_PIN, RST_PIN);
+
+String current_tag = ""; // The tag currently being read
+const String white_test = "35748615"; // Test tag
+char temp[2];
+
+void setup() {
+  Serial.begin(115200);
+  Serial.print("SETUP : ");
+  Serial.println(white_test);
+  SPI.begin(); // init SPI bus
+  rfid.PCD_Init(); // init MFRC522
+  Serial.println("Tap an RFID/NFC tag on the RFID-RC522 reader");
 }
