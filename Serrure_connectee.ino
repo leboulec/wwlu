@@ -136,7 +136,8 @@ void loop() {
           displayColor(BLACK);
           delay(100);
         }
-      }    
+      }
+      http.end();    
     }
     flag = false;
   }  
@@ -165,7 +166,7 @@ void loop() {
       http.end();
   }
 
-  for(int i = 0; i < 10; i++){
+  for(int i = 0; i < 20; i++){
     if (rfid.PICC_IsNewCardPresent() && digitalRead(KEY_PIN) != 0) { // new tag is available
       
       current_tag = ""; // Resetting current tag value
@@ -192,6 +193,7 @@ void loop() {
         else{
           lock();
         }
+        http.end();
       }
     }
   }  
