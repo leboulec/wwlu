@@ -15,9 +15,9 @@ exports.findAll = (req, res) => {
 };
 
 exports.findOne = (req, res) => {
-    Users.findAll({where: {
-        userid: req.body.userid
-    }, raw: true}).then(data => {
+    const userid = req.query.userid;
+    var condition = userid ? {userid: { [Op.like]: `%${userid}%`}} : null;
+    Users.findAll({where: condition, raw: true}).then(data => {
         if (data.length === 0) {
             res.status(204).send(data);
         } else {
@@ -33,7 +33,7 @@ exports.findOne = (req, res) => {
 
 exports.create = (req, res) => {
     console.log(req.body);
-    if (!req.body.userid || !req.body.authorization) {
+    if (!req.body.userid) {
         res.status(400).send({
             message: "Content cannot be empty."
         });
@@ -45,13 +45,23 @@ exports.create = (req, res) => {
         authorization: req.body.authorization
     };
 
-    Users.create(user)
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: err.message || "Some error occured while creating user"
+    Users.findAll({where: {
+        userid: req.body.userid
+    }, raw: true}).then(exist => {
+        if (exist.length === 0) {
+            Users.create(user)
+                .then(data => {
+                    res.send(data);
+                })
+                .catch(err => {
+                    res.status(500).send({
+                        message: err.message || "Some error occured while creating user"
+                    });
+                });
+        } else {
+            res.status(404).send({
+                message: "User already exists"
             });
-        });
+        }
+    });
 };
